@@ -8,13 +8,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
     <style>
-        body { 
-            background-color: #B3E5FC; 
-            background-image: url('https://www.transparenttextures.com/patterns/clouds.png');
-            background-attachment: fixed;
-            font-family: 'Roboto', 'Noto Sans TC', sans-serif; 
-            -webkit-tap-highlight-color: transparent; 
-        }
+        body { background-color: #B3E5FC; background-image: url('https://www.transparenttextures.com/patterns/clouds.png'); background-attachment: fixed; font-family: 'Roboto', 'Noto Sans TC', sans-serif; -webkit-tap-highlight-color: transparent; }
         .hide-scrollbar::-webkit-scrollbar { display: none; }
         .tab-content { display: none; animation: fadeIn 0.3s ease-in-out; }
         .tab-content.active { display: block; }
@@ -27,35 +21,41 @@
         .day-selector-item { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
         .day-selector-item.active { background-color: #0288D1; color: white; transform: scale(1.05); box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2); border: none; }
         .day-selector-item.inactive { background-color: rgba(255, 255, 255, 0.85); color: #546E7A; border: 1px solid rgba(255, 255, 255, 0.5); backdrop-filter: blur(4px); }
+        
+        /* 登入遮罩 */
+        #login-modal { position: fixed; inset: 0; z-index: 100; background: rgba(179, 229, 252, 0.95); backdrop-filter: blur(5px); display: flex; align-items: center; justify-content: center; }
     </style>
     <script>
-        tailwind.config = {
-            theme: { extend: { colors: { muji: { bg: '#F5F5F7', card: '#FFFFFF', text: '#37474F', accent: '#546E7A', sub: '#78909C' } } } }
-        }
+        tailwind.config = { theme: { extend: { colors: { muji: { bg: '#F5F5F7', card: '#FFFFFF', text: '#37474F', accent: '#546E7A', sub: '#78909C' } } } } }
     </script>
 </head>
 <body class="text-muji-text antialiased pb-24">
 
+    <div id="login-modal">
+        <div class="bg-white p-8 rounded-3xl shadow-xl w-4/5 max-w-sm text-center">
+            <div class="text-5xl mb-4">✈️</div>
+            <h2 class="text-2xl font-bold text-gray-800 mb-2">歡迎使用 Trip App</h2>
+            <p class="text-sm text-gray-500 mb-6">請輸入您的旅遊代碼以開始</p>
+            <input type="text" id="trip-id-input" placeholder="例如: Amy_Japan" class="w-full bg-gray-50 p-4 rounded-xl text-center font-bold text-lg outline-none border-2 border-transparent focus:border-blue-400 mb-4 transition-all">
+            <button onclick="login()" class="w-full bg-blue-500 text-white py-3 rounded-xl font-bold shadow-lg active:scale-95 transition-transform">開始旅程</button>
+        </div>
+    </div>
+
     <header class="fixed top-0 w-full bg-white/90 backdrop-blur-md z-50 shadow-sm border-b border-gray-200">
         <div class="max-w-md mx-auto px-4 py-3 flex justify-between items-center">
             <h1 class="text-lg font-bold tracking-widest text-muji-accent cursor-pointer" id="app-title">TRIP <span class="font-light">APP</span></h1>
-            <button onclick="fetchItinerary()" class="text-xs bg-gray-100 text-gray-600 px-3 py-1 rounded-full"><i class="fas fa-sync"></i> 更新</button>
+            <div class="flex items-center gap-2">
+                <span id="user-display" class="text-[10px] bg-blue-100 text-blue-600 px-2 py-1 rounded-full font-bold"></span>
+                <button onclick="fetchItinerary()" class="text-xs bg-gray-100 text-gray-600 px-3 py-1 rounded-full"><i class="fas fa-sync"></i></button>
+            </div>
         </div>
     </header>
 
     <main class="max-w-md mx-auto pt-16 px-4">
-        
         <section id="tab-plan" class="tab-content active">
-            <div class="flex justify-between items-center mb-2 mt-2">
-                <h2 class="text-2xl font-bold text-gray-800 drop-shadow-sm">行程表</h2>
-                <span id="sync-status" class="text-xs text-gray-600 font-medium"></span>
-            </div>
-            <div id="day-navigator" class="flex overflow-x-auto gap-3 py-2 mb-4 hide-scrollbar -mx-4 px-4 sticky top-[60px] z-40 pb-4">
-                <div class="text-sm text-gray-500 pl-2 font-bold">載入中...</div>
-            </div>
-            <div id="itinerary-list" class="space-y-6 pb-4 min-h-[300px]">
-                <div class="text-center py-10 text-gray-500 bg-white/60 rounded-2xl backdrop-blur-sm shadow-sm">資料載入中...</div>
-            </div>
+            <div class="flex justify-between items-center mb-2 mt-2"><h2 class="text-2xl font-bold text-gray-800 drop-shadow-sm">行程表</h2><span id="sync-status" class="text-xs text-gray-600 font-medium"></span></div>
+            <div id="day-navigator" class="flex overflow-x-auto gap-3 py-2 mb-4 hide-scrollbar -mx-4 px-4 sticky top-[60px] z-40 pb-4"><div class="text-sm text-gray-500 pl-2 font-bold">載入中...</div></div>
+            <div id="itinerary-list" class="space-y-6 pb-4 min-h-[300px]"><div class="text-center py-10 text-gray-500 bg-white/60 rounded-2xl backdrop-blur-sm shadow-sm">資料載入中...</div></div>
         </section>
 
         <section id="tab-wallet" class="tab-content">
@@ -63,44 +63,17 @@
             <div class="bg-muji-accent text-white rounded-2xl p-5 shadow-lg mb-8 relative overflow-hidden">
                 <i class="fas fa-calculator absolute -right-5 -bottom-5 text-white opacity-10 text-9xl"></i>
                 <div class="relative z-10">
-                    <div class="mb-4">
-                        <div class="text-xs opacity-80 mb-1">匯率 (1 JPY =)</div>
-                        <div class="text-4xl font-mono font-bold flex items-center">
-                            <input type="number" id="exchange-rate" value="0.215" step="0.001" class="bg-transparent border-b border-white/30 w-48 focus:outline-none pr-5" onchange="updateRate()"> 
-                            <span class="text-lg -ml-2">TWD</span>
-                        </div>
-                    </div>
-                    <div class="bg-white/10 rounded-xl p-3 flex items-center backdrop-blur-sm">
-                        <span class="text-lg mr-2 font-light">¥</span>
-                        <input type="text" id="calc-input" placeholder="例如: 500+200*3" oninput="calculate()" inputmode="text" class="w-full bg-transparent text-white placeholder-white/50 focus:outline-none font-mono text-xl">
-                        <button onclick="calculate()" class="text-white px-3 text-xl"><i class="fas fa-equals"></i></button>
-                    </div>
+                    <div class="mb-4"><div class="text-xs opacity-80 mb-1">匯率 (1 JPY =)</div><div class="text-4xl font-mono font-bold flex items-center"><input type="number" id="exchange-rate" value="0.215" step="0.001" class="bg-transparent border-b border-white/30 w-48 focus:outline-none pr-5" onchange="updateRate()"> <span class="text-lg -ml-2">TWD</span></div></div>
+                    <div class="bg-white/10 rounded-xl p-3 flex items-center backdrop-blur-sm"><span class="text-lg mr-2 font-light">¥</span><input type="text" id="calc-input" placeholder="500+200*3" oninput="calculate()" inputmode="text" class="w-full bg-transparent text-white placeholder-white/50 focus:outline-none font-mono text-xl"><button onclick="calculate()" class="text-white px-3 text-xl"><i class="fas fa-equals"></i></button></div>
                     <div id="calc-result" class="text-right text-sm mt-2 opacity-80 h-5 font-mono"></div>
                 </div>
             </div>
-
             <div class="bg-white/95 backdrop-blur-md rounded-2xl p-5 shadow-sm mb-8 border border-white/60">
                 <h3 class="text-sm font-bold text-muji-sub mb-4">新增記帳</h3>
-                <div class="flex gap-4 mb-4">
-                    <div class="w-1/3 relative">
-                        <select id="expense-category" class="w-full h-full bg-gray-50/80 rounded-xl text-sm px-3 py-3 appearance-none outline-none border border-transparent focus:border-muji-accent text-gray-700">
-                            <option value="food">🍱 餐飲</option><option value="shopping">🛍️ 購物</option><option value="transport">🚇 交通</option><option value="ticket">🎫 門票</option><option value="stay">🏨 住宿</option><option value="other">📦 其他</option>
-                        </select>
-                        <div class="absolute right-2 top-3.5 pointer-events-none text-gray-400 text-xs"><i class="fas fa-chevron-down"></i></div>
-                    </div>
-                    <input type="text" id="expense-item" placeholder="品項名稱" class="w-2/3 bg-gray-50/80 rounded-xl p-3 text-sm outline-none border border-transparent focus:border-muji-accent">
-                </div>
-                <div class="grid grid-cols-2 gap-4 mb-4">
-                    <div class="relative"><select id="expense-currency" class="w-full bg-gray-50/80 rounded-xl p-3 text-sm appearance-none outline-none border border-transparent focus:border-muji-accent font-bold text-muji-accent"><option value="JPY">🇯🇵 JPY</option><option value="TWD">🇹🇼 TWD</option><option value="USD">🇺🇸 USD</option></select><div class="absolute right-3 top-4 pointer-events-none text-gray-400 text-xs"><i class="fas fa-chevron-down"></i></div></div>
-                    <div class="relative"><select id="expense-payment" class="w-full bg-gray-50/80 rounded-xl p-3 text-sm appearance-none outline-none border border-transparent focus:border-muji-accent text-gray-700"><option value="cash">💴 現金</option><option value="card">💳 信用卡</option><option value="mobile">📱 Pay</option><option value="suica">🐧 IC卡</option></select><div class="absolute right-3 top-4 pointer-events-none text-gray-400 text-xs"><i class="fas fa-chevron-down"></i></div></div>
-                </div>
+                <div class="flex gap-4 mb-4"><div class="w-1/3 relative"><select id="expense-category" class="w-full h-full bg-gray-50/80 rounded-xl text-sm px-3 py-3 appearance-none outline-none border border-transparent focus:border-muji-accent text-gray-700"><option value="food">🍱 餐飲</option><option value="shopping">🛍️ 購物</option><option value="transport">🚇 交通</option><option value="ticket">🎫 門票</option><option value="stay">🏨 住宿</option><option value="other">📦 其他</option></select><div class="absolute right-2 top-3.5 pointer-events-none text-gray-400 text-xs"><i class="fas fa-chevron-down"></i></div></div><input type="text" id="expense-item" placeholder="品項名稱" class="w-2/3 bg-gray-50/80 rounded-xl p-3 text-sm outline-none border border-transparent focus:border-muji-accent"></div>
+                <div class="grid grid-cols-2 gap-4 mb-4"><div class="relative"><select id="expense-currency" class="w-full bg-gray-50/80 rounded-xl p-3 text-sm appearance-none outline-none border border-transparent focus:border-muji-accent font-bold text-muji-accent"><option value="JPY">🇯🇵 JPY</option><option value="TWD">🇹🇼 TWD</option><option value="USD">🇺🇸 USD</option></select><div class="absolute right-3 top-4 pointer-events-none text-gray-400 text-xs"><i class="fas fa-chevron-down"></i></div></div><div class="relative"><select id="expense-payment" class="w-full bg-gray-50/80 rounded-xl p-3 text-sm appearance-none outline-none border border-transparent focus:border-muji-accent text-gray-700"><option value="cash">💴 現金</option><option value="card">💳 信用卡</option><option value="mobile">📱 Pay</option><option value="suica">🐧 IC卡</option></select><div class="absolute right-3 top-4 pointer-events-none text-gray-400 text-xs"><i class="fas fa-chevron-down"></i></div></div></div>
                 <div class="mb-4 relative"><input type="number" id="expense-amount" placeholder="消費金額" class="w-full bg-gray-50/80 rounded-xl p-3 pl-4 text-base outline-none border border-transparent focus:border-muji-accent font-mono" inputmode="decimal"></div>
-                <div class="mb-4">
-                    <label class="flex items-center justify-center gap-2 bg-gray-50/80 border border-dashed border-gray-300 rounded-xl p-4 text-sm cursor-pointer text-gray-500 hover:bg-gray-100 transition-colors" id="photo-label-container">
-                        <i class="fas fa-camera text-muji-accent"></i><span id="photo-label">上傳收據/照片 (自動壓縮)</span>
-                        <input type="file" id="expense-photo" accept="image/*" capture="environment" class="hidden" onchange="handlePhotoUpload(this, 'expense')">
-                    </label>
-                </div>
+                <div class="mb-4"><label class="flex items-center justify-center gap-2 bg-gray-50/80 border border-dashed border-gray-300 rounded-xl p-4 text-sm cursor-pointer text-gray-500 hover:bg-gray-100 transition-colors" id="photo-label-container"><i class="fas fa-camera text-muji-accent"></i><span id="photo-label">上傳收據 (自動壓縮)</span><input type="file" id="expense-photo" accept="image/*" capture="environment" class="hidden" onchange="handlePhotoUpload(this, 'expense')"></label></div>
                 <button onclick="addExpense()" id="btn-submit-expense" class="w-full bg-muji-sub text-white py-3.5 rounded-xl font-bold shadow-md btn-active hover:bg-muji-accent transition-colors text-base"><i class="fas fa-plus mr-1"></i> 記錄並同步</button>
             </div>
             <div class="bg-gray-800 text-white rounded-2xl p-5 shadow-md mb-8 flex justify-between items-center"><div><div class="text-xs opacity-70 mb-1">目前累積支出</div><div class="text-sm font-bold">Total Spent (TWD)</div></div><div class="text-4xl font-mono font-bold tracking-tight">$<span id="total-spent">0</span></div></div>
@@ -109,23 +82,10 @@
         </section>
 
         <section id="tab-lists" class="tab-content">
-            <h2 class="text-2xl font-bold mb-6 mt-2 text-gray-800 drop-shadow-sm">必買與待辦清單</h2>
+            <h2 class="text-2xl font-bold mb-6 mt-2 text-gray-800 drop-shadow-sm">必買與待辦</h2>
             <div class="bg-white/95 backdrop-blur-md rounded-2xl p-5 shadow-sm mb-8 border border-white/60">
-                <div class="flex gap-3 mb-3">
-                    <div class="relative w-1/3">
-                        <select id="list-category" class="w-full bg-gray-50/80 rounded-xl p-3 text-sm appearance-none outline-none text-gray-600">
-                            <option value="buy">🛍️ 必買</option><option value="bring">🎒 必帶</option><option value="gift">🎁 伴手禮</option><option value="todo">✅ 待辦</option>
-                        </select>
-                        <i class="fas fa-chevron-down absolute right-3 top-3.5 text-xs text-gray-400 pointer-events-none"></i>
-                    </div>
-                    <input type="text" id="list-input" placeholder="例如: 薯條三兄弟" class="w-2/3 bg-gray-50/80 rounded-xl p-3 text-sm outline-none placeholder-gray-400">
-                </div>
-                <div class="mb-3">
-                    <label class="flex items-center justify-center gap-2 bg-gray-50/80 border border-dashed border-gray-300 rounded-xl p-3 text-xs cursor-pointer text-gray-500 hover:bg-gray-100 transition-colors" id="list-photo-label-container">
-                        <i class="fas fa-camera text-muji-accent"></i> <span id="list-photo-label">加入圖片 (選填)</span>
-                        <input type="file" id="list-photo" accept="image/*" class="hidden" onchange="handlePhotoUpload(this, 'list')">
-                    </label>
-                </div>
+                <div class="flex gap-3 mb-3"><div class="relative w-1/3"><select id="list-category" class="w-full bg-gray-50/80 rounded-xl p-3 text-sm appearance-none outline-none text-gray-600"><option value="buy">🛍️ 必買</option><option value="bring">🎒 必帶</option><option value="gift">🎁 伴手禮</option><option value="todo">✅ 待辦</option></select><i class="fas fa-chevron-down absolute right-3 top-3.5 text-xs text-gray-400 pointer-events-none"></i></div><input type="text" id="list-input" placeholder="例如: 薯條三兄弟" class="w-2/3 bg-gray-50/80 rounded-xl p-3 text-sm outline-none placeholder-gray-400"></div>
+                <div class="mb-3"><label class="flex items-center justify-center gap-2 bg-gray-50/80 border border-dashed border-gray-300 rounded-xl p-3 text-xs cursor-pointer text-gray-500 hover:bg-gray-100 transition-colors" id="list-photo-label-container"><i class="fas fa-camera text-muji-accent"></i> <span id="list-photo-label">加入圖片 (選填)</span><input type="file" id="list-photo" accept="image/*" class="hidden" onchange="handlePhotoUpload(this, 'list')"></label></div>
                 <button onclick="addList()" id="btn-add-list" class="w-full bg-muji-accent text-white py-3.5 rounded-xl font-bold shadow-sm btn-active mt-1"><i class="fas fa-plus mr-1"></i> 新增項目</button>
             </div>
             <div class="flex justify-between items-end mb-3 px-1"><h3 class="text-sm font-bold text-muji-sub">清單項目</h3><span class="text-[10px] text-gray-500" id="list-count"></span></div>
@@ -134,32 +94,14 @@
 
         <section id="tab-journal" class="tab-content">
             <h2 class="text-2xl font-bold mb-6 mt-2 text-gray-800 drop-shadow-sm">旅遊日誌</h2>
-            
             <div class="bg-white/95 backdrop-blur-md rounded-2xl p-5 shadow-sm mb-8 border border-white/60">
                 <h3 class="text-sm font-bold text-muji-sub mb-3">記錄美好時刻</h3>
-                
-                <div class="relative mb-3">
-                    <select id="journal-date" class="w-full bg-gray-50/80 rounded-xl p-3 text-sm appearance-none outline-none border border-transparent focus:border-muji-accent text-gray-700">
-                        <option value="">選擇日期...</option>
-                    </select>
-                    <div class="absolute right-3 top-3.5 pointer-events-none text-gray-400 text-xs"><i class="fas fa-chevron-down"></i></div>
-                </div>
-
+                <div class="relative mb-3"><select id="journal-date" class="w-full bg-gray-50/80 rounded-xl p-3 text-sm appearance-none outline-none border border-transparent focus:border-muji-accent text-gray-700"><option value="">選擇日期...</option></select><div class="absolute right-3 top-3.5 pointer-events-none text-gray-400 text-xs"><i class="fas fa-chevron-down"></i></div></div>
                 <textarea id="journal-text" rows="3" placeholder="今天發生了什麼有趣的事？" class="w-full bg-gray-50/80 rounded-xl p-3 text-sm outline-none border border-transparent focus:border-muji-accent mb-3"></textarea>
-
-                <div class="mb-3">
-                    <label class="flex items-center justify-center gap-2 bg-gray-50/80 border border-dashed border-gray-300 rounded-xl p-3 text-xs cursor-pointer text-gray-500 hover:bg-gray-100 transition-colors" id="journal-photo-label-container">
-                        <i class="fas fa-camera text-muji-accent"></i> <span id="journal-photo-label">加入照片 (選填)</span>
-                        <input type="file" id="journal-photo" accept="image/*" class="hidden" onchange="handlePhotoUpload(this, 'journal')">
-                    </label>
-                </div>
-
+                <div class="mb-3"><label class="flex items-center justify-center gap-2 bg-gray-50/80 border border-dashed border-gray-300 rounded-xl p-3 text-xs cursor-pointer text-gray-500 hover:bg-gray-100 transition-colors" id="journal-photo-label-container"><i class="fas fa-camera text-muji-accent"></i> <span id="journal-photo-label">加入照片 (選填)</span><input type="file" id="journal-photo" accept="image/*" class="hidden" onchange="handlePhotoUpload(this, 'journal')"></label></div>
                 <button onclick="addJournal()" id="btn-add-journal" class="w-full bg-muji-accent text-white py-3.5 rounded-xl font-bold shadow-sm btn-active mt-1"><i class="fas fa-pen mr-1"></i> 寫入日誌</button>
             </div>
-
-            <div id="journal-container" class="space-y-6 pb-8">
-                <div class="text-center py-10 text-gray-500 bg-white/60 rounded-2xl backdrop-blur-sm shadow-sm">暫無日誌</div>
-            </div>
+            <div id="journal-container" class="space-y-6 pb-8"><div class="text-center py-10 text-gray-500 bg-white/60 rounded-2xl backdrop-blur-sm shadow-sm">暫無日誌</div></div>
         </section>
 
         <section id="tab-info" class="tab-content">
@@ -189,51 +131,94 @@
     <script>
         const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycby9XgpzQDPmkoKWB0D-bdt_RfZS0NXcG3d5KCPnSfLggvKQiZ_TvLCGgnnsUKygSqUL/exec'; 
 
-        let appData = JSON.parse(localStorage.getItem('tripData')) || {
-            itinerary: [], expenses: [], lists: [], info: [], journal: [], exchangeRate: 0.215
-        };
-        // 暫存圖片
+        let appData = { itinerary: [], expenses: [], lists: [], info: [], journal: [], exchangeRate: 0.215 };
         let expenseCompressedImage = null;
         let listCompressedImage = null;
-        let journalCompressedImage = null; // 【新】
+        let journalCompressedImage = null;
         let activeDayIndex = 0; 
+        
+        let TRIP_ID = localStorage.getItem('trip_id') || "";
 
         window.onload = function() {
-            renderItinerary(); renderExpenses(); renderLists(); renderInfo(); renderJournal(); // 【新】
-            const rateEl = document.getElementById('exchange-rate'); if(rateEl) rateEl.value = appData.exchangeRate; updateRate();
-            getWeather();
-            if(GOOGLE_SCRIPT_URL && GOOGLE_SCRIPT_URL.startsWith('http')) fetchItinerary();
+            if(TRIP_ID) {
+                document.getElementById('login-modal').style.display = 'none';
+                document.getElementById('user-display').innerText = TRIP_ID;
+                initializeApp();
+            } else {
+                document.getElementById('login-modal').style.display = 'flex';
+            }
+            
+            document.getElementById('trip-id-input').addEventListener('keypress', function (e) {
+                if (e.key === 'Enter') login();
+            });
+
             let listClickCount = 0;
             document.getElementById('app-title').onclick = function() {
                 listClickCount++;
-                if(listClickCount === 5) { if(confirm('【開發者工具】要清空所有資料嗎？')) { localStorage.clear(); location.reload(); } listClickCount = 0; }
+                if(listClickCount === 5) { if(confirm('要登出並切換帳號嗎？')) { localStorage.removeItem('trip_id'); location.reload(); } listClickCount = 0; }
             };
         };
 
-        function saveData() { localStorage.setItem('tripData', JSON.stringify(appData)); }
+        function login() {
+            const input = document.getElementById('trip-id-input').value.trim();
+            if(!input) { alert('請輸入代碼'); return; }
+            TRIP_ID = input;
+            localStorage.setItem('trip_id', TRIP_ID);
+            document.getElementById('login-modal').style.display = 'none';
+            document.getElementById('user-display').innerText = TRIP_ID;
+            initializeApp();
+        }
+
+        function initializeApp() {
+            const cached = localStorage.getItem('tripData_' + TRIP_ID);
+            if(cached) {
+                appData = JSON.parse(cached);
+                renderAll();
+            }
+            const rateEl = document.getElementById('exchange-rate'); if(rateEl) rateEl.value = appData.exchangeRate || 0.215; 
+            updateRate();
+            getWeather();
+            if(GOOGLE_SCRIPT_URL && GOOGLE_SCRIPT_URL.startsWith('http')) fetchItinerary();
+        }
+
+        function saveData() { localStorage.setItem('tripData_' + TRIP_ID, JSON.stringify(appData)); }
+        function renderAll() { renderItinerary(); renderExpenses(); renderLists(); renderInfo(); renderJournal(); }
+
         function switchTab(id) {
             document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
             document.getElementById('tab-'+id).classList.add('active');
             document.querySelectorAll('.nav-btn').forEach(btn => { btn.classList.remove('text-muji-accent', 'text-gray-400'); btn.className = btn.dataset.target === id ? 'nav-btn flex-1 text-muji-accent' : 'nav-btn flex-1 text-gray-400'; });
-            
-            // 如果切換到日誌，更新日期選單
             if(id === 'journal') updateJournalDateSelect();
         }
 
         function fetchItinerary() {
             const status = document.getElementById('sync-status'); status.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
-            fetch(GOOGLE_SCRIPT_URL).then(res => res.json()).then(data => {
-                if(data.itinerary) appData.itinerary = data.itinerary;
-                if(data.expenses) appData.expenses = data.expenses;
-                if(data.lists) appData.lists = data.lists;
-                if(data.info) appData.info = data.info;
-                if(data.journal) appData.journal = data.journal; // 【新】
-                saveData(); renderItinerary(); renderExpenses(); renderLists(); renderInfo(); renderJournal();
-                status.innerText = '完成'; setTimeout(() => status.innerText = '', 2000);
-            }).catch(err => { console.error(err); status.innerText = '失敗'; });
+            fetch(`${GOOGLE_SCRIPT_URL}?uid=${encodeURIComponent(TRIP_ID)}`)
+                .then(res => res.json())
+                .then(data => {
+                    if(data.itinerary) appData.itinerary = data.itinerary;
+                    if(data.expenses) appData.expenses = data.expenses;
+                    if(data.lists) appData.lists = data.lists;
+                    if(data.info) appData.info = data.info;
+                    if(data.journal) appData.journal = data.journal;
+                    
+                    // 【修正】匯率格式化：限制小數點後3位
+                    if(data.rate) {
+                        const fixedRate = parseFloat(data.rate).toFixed(3); // 強制轉為3位小數的字串 (例如 "0.201")
+                        appData.exchangeRate = parseFloat(fixedRate); // 存回數字
+                        
+                        const rateEl = document.getElementById('exchange-rate');
+                        if(rateEl) rateEl.value = fixedRate; // 更新介面顯示
+                        
+                        updateRate();
+                    }
+
+                    saveData(); renderAll();
+                    status.innerText = '完成'; setTimeout(() => status.innerText = '', 2000);
+                }).catch(err => { console.error(err); status.innerText = '失敗'; });
         }
 
-        // --- 1. 行程表 ---
+        // --- Render Functions ---
         function renderItinerary() {
             const container = document.getElementById('itinerary-list'); const navContainer = document.getElementById('day-navigator');
             if(!appData.itinerary || !appData.itinerary.length) { container.innerHTML = '<div class="text-center py-10 text-gray-500 bg-white/60 rounded-2xl">暫無行程資料</div>'; navContainer.innerHTML = ''; return; }
@@ -272,17 +257,16 @@
         }
         function switchDay(i) { activeDayIndex=i; renderItinerary(); document.getElementById('day-navigator').children[i]?.scrollIntoView({behavior:'smooth', inline:'center'}); }
 
-        // --- 2. 記帳 ---
         function addExpense() {
             const item = document.getElementById('expense-item').value, amount = document.getElementById('expense-amount').value, category = document.getElementById('expense-category').value, payment = document.getElementById('expense-payment').value, currency = document.getElementById('expense-currency').value;
             const btn = document.getElementById('btn-submit-expense');
             if(!item || !amount) { alert('請輸入內容與金額'); return; }
-            btn.disabled=true; btn.innerHTML='<i class="fas fa-spinner fa-spin"></i> 上傳中...';
+            btn.disabled=true; btn.innerHTML='<i class="fas fa-spinner fa-spin"></i>';
             let twd = Math.round(currency==='JPY'? amount*appData.exchangeRate : (currency==='USD'? amount*32.5 : amount));
             const newEx = { id: Date.now(), date: new Date().toLocaleDateString(), item, amount, twd, category, payment, currency, photo: expenseCompressedImage };
             appData.expenses.unshift(newEx); saveData(); renderExpenses();
             if(GOOGLE_SCRIPT_URL) {
-                fetch(GOOGLE_SCRIPT_URL, { method: 'POST', body: JSON.stringify({ item, amount, twd, category, payment, currency, image: expenseCompressedImage }) })
+                fetch(GOOGLE_SCRIPT_URL, { method: 'POST', body: JSON.stringify({ userId: TRIP_ID, item, amount, twd, category, payment, currency, image: expenseCompressedImage }) })
                 .then(res=>res.json()).finally(() => { btn.disabled=false; btn.innerHTML='<i class="fas fa-plus mr-1"></i> 記錄並同步'; document.getElementById('expense-item').value=''; document.getElementById('expense-amount').value=''; expenseCompressedImage=null; document.getElementById('photo-label').innerText='上傳收據 (自動壓縮)'; document.getElementById('photo-label-container').classList.remove('text-muji-accent', 'border-muji-accent'); });
             } else { btn.disabled=false; btn.innerHTML='<i class="fas fa-plus mr-1"></i> 記錄並同步'; }
         }
@@ -302,9 +286,21 @@
             }).join('');
             document.getElementById('total-spent').innerText=total.toLocaleString();
         }
-        function deleteExpense(id) { if(confirm('確定刪除？')) { appData.expenses=appData.expenses.filter(e=>e.id!=id); saveData(); renderExpenses(); if(GOOGLE_SCRIPT_URL && String(id).startsWith('server_')) fetch(GOOGLE_SCRIPT_URL, {method:'POST', body:JSON.stringify({action:'delete', id})}); } }
+        function deleteExpense(id) { if(confirm('確定刪除？')) { appData.expenses=appData.expenses.filter(e=>e.id!=id); saveData(); renderExpenses(); if(GOOGLE_SCRIPT_URL && String(id).startsWith('server_')) fetch(GOOGLE_SCRIPT_URL, {method:'POST', body:JSON.stringify({userId: TRIP_ID, action:'delete', id})}); } }
 
-        // --- 3. 清單 ---
+        function addList() {
+            const input = document.getElementById('list-input'), cat = document.getElementById('list-category').value, btn = document.getElementById('btn-add-list');
+            if(!input.value.trim()) return;
+            btn.disabled=true; btn.innerHTML='<i class="fas fa-spinner fa-spin"></i>';
+            const tempId = "temp_" + Date.now();
+            appData.lists.unshift({ id: tempId, text: input.value, category: cat, checked: false, photo: listCompressedImage });
+            saveData(); renderLists(); 
+            if(GOOGLE_SCRIPT_URL) {
+                fetch(GOOGLE_SCRIPT_URL, { method: 'POST', body: JSON.stringify({ userId: TRIP_ID, action: 'add_list', category: cat, text: input.value, image: listCompressedImage }) })
+                .then(res=>res.json()).then(data=>{ const t = appData.lists.find(l=>l.id===tempId); if(t) t.id=data.id; saveData(); })
+                .finally(()=>{ btn.disabled=false; btn.innerHTML='<i class="fas fa-plus mr-1"></i> 新增項目'; input.value=''; listCompressedImage=null; document.getElementById('list-photo-label').innerText='加入圖片 (選填)'; document.getElementById('list-photo-label-container').classList.remove('text-muji-accent', 'border-muji-accent');});
+            } else { btn.disabled=false; btn.innerHTML='<i class="fas fa-plus mr-1"></i> 新增項目'; input.value=''; }
+        }
         function renderLists() {
             const c = document.getElementById('lists-container'), count = document.getElementById('list-count');
             if(!appData.lists.length) { c.innerHTML='<div class="col-span-2 text-center text-gray-400 py-10 text-sm bg-white/60 rounded-2xl">尚無項目</div>'; count.innerText=''; return; }
@@ -320,116 +316,44 @@
                 return `<div class="${isChecked?'bg-gray-100 opacity-60':'bg-white'} rounded-xl shadow-sm border border-gray-100 flex flex-col relative group overflow-hidden" onclick="toggleList('${item.id}')">${imgHtml}${isChecked ? '<div class="absolute inset-0 bg-black/10 flex items-center justify-center z-10"><span class="bg-white/80 px-3 py-1 rounded-full text-xs font-bold text-gray-600 shadow-sm">已購買</span></div>' : ''}<div class="p-3 relative z-20 bg-white"><div class="flex justify-between items-start mb-1"><span class="text-[10px] ${badge} px-1.5 py-0.5 rounded">${name}</span><button onclick="event.stopPropagation();deleteList('${item.id}')" class="text-gray-300 hover:text-red-400"><i class="fas fa-trash-alt text-xs"></i></button></div><div class="${isChecked?'line-through text-gray-400':'text-gray-800'} font-bold text-sm truncate">${item.text}</div></div></div>`;
             }).join('');
         }
-        function addList() {
-            const input = document.getElementById('list-input'), cat = document.getElementById('list-category').value, btn = document.getElementById('btn-add-list');
-            if(!input.value.trim()) return;
-            btn.disabled=true; btn.innerHTML='<i class="fas fa-spinner fa-spin"></i>';
-            const tempId = "temp_" + Date.now();
-            appData.lists.unshift({ id: tempId, text: input.value, category: cat, checked: false, photo: listCompressedImage });
-            saveData(); renderLists(); 
-            if(GOOGLE_SCRIPT_URL) {
-                fetch(GOOGLE_SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'add_list', category: cat, text: input.value, image: listCompressedImage }) })
-                .then(res=>res.json()).then(data=>{ const t = appData.lists.find(l=>l.id===tempId); if(t) t.id=data.id; saveData(); })
-                .finally(()=>{ btn.disabled=false; btn.innerHTML='<i class="fas fa-plus mr-1"></i> 新增項目'; input.value=''; listCompressedImage=null; document.getElementById('list-photo-label').innerText='加入圖片 (選填)'; document.getElementById('list-photo-label-container').classList.remove('text-muji-accent', 'border-muji-accent');});
-            } else { btn.disabled=false; btn.innerHTML='<i class="fas fa-plus mr-1"></i> 新增項目'; input.value=''; }
-        }
-        function toggleList(id) { const i=appData.lists.find(l=>l.id==id); if(i){ i.checked=!i.checked; saveData(); renderLists(); if(GOOGLE_SCRIPT_URL && String(id).startsWith('L_')) fetch(GOOGLE_SCRIPT_URL, {method:'POST', body:JSON.stringify({action:'toggle_list', id})}); } }
-        function deleteList(id) { if(confirm('刪除此項目？')) { appData.lists=appData.lists.filter(l=>l.id!=id); saveData(); renderLists(); if(GOOGLE_SCRIPT_URL && String(id).startsWith('L_')) fetch(GOOGLE_SCRIPT_URL, {method:'POST', body:JSON.stringify({action:'delete_list', id})}); } }
+        function toggleList(id) { const i=appData.lists.find(l=>l.id==id); if(i){ i.checked=!i.checked; saveData(); renderLists(); if(GOOGLE_SCRIPT_URL && String(id).startsWith('L_')) fetch(GOOGLE_SCRIPT_URL, {method:'POST', body:JSON.stringify({userId: TRIP_ID, action:'toggle_list', id})}); } }
+        function deleteList(id) { if(confirm('刪除此項目？')) { appData.lists=appData.lists.filter(l=>l.id!=id); saveData(); renderLists(); if(GOOGLE_SCRIPT_URL && String(id).startsWith('L_')) fetch(GOOGLE_SCRIPT_URL, {method:'POST', body:JSON.stringify({userId: TRIP_ID, action:'delete_list', id})}); } }
 
-        // --- 4. 日誌 (Journal) ---
         function renderJournal() {
             const c = document.getElementById('journal-container');
             const data = appData.journal || [];
             if(!data.length) { c.innerHTML='<div class="text-center py-10 text-gray-500 bg-white/60 rounded-2xl">尚無日誌</div>'; return; }
-            
             c.innerHTML = data.map(j => {
                 const imgHtml = j.photo ? `<img src="${j.photo}" class="w-full h-48 object-cover rounded-xl mt-3 shadow-sm border border-gray-100">` : '';
-                // 判斷日期對應第幾天
-                let dayLabel = j.date; // 預設顯示日期
-                const itinDay = appData.itinerary.find(d => {
-                    if(d.date.length > 5) {
-                        return d.date.includes(j.date) || new Date(d.date).toLocaleDateString().includes(j.date);
-                    }
-                    return d.date === j.date;
-                });
+                let dayLabel = j.date;
+                const itinDay = appData.itinerary.find(d => { if(d.date.length > 5) return d.date.includes(j.date) || new Date(d.date).toLocaleDateString().includes(j.date); return d.date === j.date; });
                 if(itinDay) dayLabel = `${itinDay.day.replace('D','Day ')} - ${j.date}`;
-
-                return `
-                <div class="bg-white/95 backdrop-blur-md p-5 rounded-3xl shadow-sm border border-white/60 relative group">
-                    <div class="flex justify-between items-start mb-2">
-                        <div class="flex items-center gap-2">
-                            <span class="bg-muji-accent text-white text-xs px-2 py-1 rounded-md font-bold">${dayLabel}</span>
-                        </div>
-                        <button onclick="deleteJournal('${j.id}')" class="text-gray-300 hover:text-red-400 p-1"><i class="fas fa-trash-alt"></i></button>
-                    </div>
-                    <div class="text-gray-700 leading-relaxed whitespace-pre-line text-sm">${j.text}</div>
-                    ${imgHtml}
-                </div>`;
+                return `<div class="bg-white/95 backdrop-blur-md p-5 rounded-3xl shadow-sm border border-white/60 relative group"><div class="flex justify-between items-start mb-2"><div class="flex items-center gap-2"><span class="bg-muji-accent text-white text-xs px-2 py-1 rounded-md font-bold">${dayLabel}</span></div><button onclick="deleteJournal('${j.id}')" class="text-gray-300 hover:text-red-400 p-1"><i class="fas fa-trash-alt"></i></button></div><div class="text-gray-700 leading-relaxed whitespace-pre-line text-sm">${j.text}</div>${imgHtml}</div>`;
             }).join('');
         }
-
-        // 自動填入行程表日期到選單
         function updateJournalDateSelect() {
-            const select = document.getElementById('journal-date');
-            if(!select || !appData.itinerary.length) return;
+            const select = document.getElementById('journal-date'); if(!select || !appData.itinerary.length) return;
             select.innerHTML = '<option value="">選擇日期...</option>';
             appData.itinerary.forEach(day => {
-                let val = day.date;
-                // 簡化日期顯示
-                try {
-                    if(day.date.length > 10) { 
-                        const d = new Date(day.date); 
-                        if(!isNaN(d)) val = (d.getMonth()+1) + '/' + d.getDate();
-                    }
-                } catch(e){}
-                const option = document.createElement('option');
-                option.value = val;
-                option.text = `${day.day.replace('D','Day ')} (${val}) - ${day.title}`;
-                select.appendChild(option);
+                let val = day.date; try { if(day.date.length > 10) { const d = new Date(day.date); if(!isNaN(d)) val = (d.getMonth()+1) + '/' + d.getDate(); } } catch(e){}
+                const option = document.createElement('option'); option.value = val; option.text = `${day.day.replace('D','Day ')} (${val}) - ${day.title}`; select.appendChild(option);
             });
         }
-
         function addJournal() {
-            const date = document.getElementById('journal-date').value;
-            const text = document.getElementById('journal-text').value;
-            const btn = document.getElementById('btn-add-journal');
-            
+            const date = document.getElementById('journal-date').value, text = document.getElementById('journal-text').value, btn = document.getElementById('btn-add-journal');
             if(!date || !text) { alert('請選擇日期並輸入內容'); return; }
-            
-            btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 寫入中...';
-            
+            btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
             const newJ = { id: "temp_" + Date.now(), date: date, text: text, photo: journalCompressedImage };
-            if(!appData.journal) appData.journal = [];
-            appData.journal.unshift(newJ);
-            saveData(); renderJournal();
-            
-            // 清空輸入
-            document.getElementById('journal-text').value = '';
-            journalCompressedImage = null;
-            document.getElementById('journal-photo-label').innerText = '加入照片 (選填)';
-            document.getElementById('journal-photo-label-container').classList.remove('text-muji-accent', 'border-muji-accent');
-
+            appData.journal.unshift(newJ); saveData(); renderJournal();
+            document.getElementById('journal-text').value = ''; journalCompressedImage = null; document.getElementById('journal-photo-label').innerText = '加入照片 (選填)'; document.getElementById('journal-photo-label-container').classList.remove('text-muji-accent', 'border-muji-accent');
             if(GOOGLE_SCRIPT_URL) {
-                fetch(GOOGLE_SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'add_journal', date: date, text: text, image: journalCompressedImage }) })
-                .then(res=>res.json()).then(data => {
-                    const t = appData.journal.find(j => j.id === newJ.id);
-                    if(t) t.id = data.id;
-                    saveData();
-                })
+                fetch(GOOGLE_SCRIPT_URL, { method: 'POST', body: JSON.stringify({ userId: TRIP_ID, action: 'add_journal', date: date, text: text, image: journalCompressedImage }) })
+                .then(res=>res.json()).then(data => { const t = appData.journal.find(j => j.id === newJ.id); if(t) t.id = data.id; saveData(); })
                 .finally(() => { btn.disabled = false; btn.innerHTML = '<i class="fas fa-pen mr-1"></i> 寫入日誌'; });
             } else { btn.disabled = false; btn.innerHTML = '<i class="fas fa-pen mr-1"></i> 寫入日誌'; }
         }
+        function deleteJournal(id) { if(confirm('確定刪除？')) { appData.journal = appData.journal.filter(j => j.id != id); saveData(); renderJournal(); if (GOOGLE_SCRIPT_URL && String(id).startsWith('J_')) fetch(GOOGLE_SCRIPT_URL, { method: 'POST', body: JSON.stringify({ userId: TRIP_ID, action: 'delete_journal', id: id }) }); } }
 
-        function deleteJournal(id) {
-            if(!confirm('確定刪除這篇日誌？')) return;
-            appData.journal = appData.journal.filter(j => j.id != id);
-            saveData(); renderJournal();
-            if (GOOGLE_SCRIPT_URL && String(id).startsWith('J_')) {
-                fetch(GOOGLE_SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'delete_journal', id: id }) });
-            }
-        }
-
-        // --- 共用與工具 ---
         function handlePhotoUpload(input, type) {
             if (input.files && input.files[0]) {
                 const reader = new FileReader();
@@ -448,11 +372,7 @@
             }
         }
         function updateRate(){ const r=document.getElementById('exchange-rate'); if(r){ appData.exchangeRate=parseFloat(r.value)||0.215; saveData(); calculate(); renderExpenses(); } }
-        function calculate(){ 
-            const i=document.getElementById('calc-input'), r=document.getElementById('calc-result'); if(!i||!r)return; 
-            let v=i.value; if(!v){r.innerText='';return;}
-            try{ v=v.replace(/[\uff10-\uff19]/g,s=>String.fromCharCode(s.charCodeAt(0)-0xfee0)).replace(/[\uff0b]/g,'+'); const jpy=eval(v.replace(/[^0-9+\-*/().]/g,'')); if(isFinite(jpy)) r.innerText=`= ${jpy} JPY ≈ ${Math.round(jpy*appData.exchangeRate)} TWD`; }catch(e){r.innerText='...';} 
-        }
+        function calculate(){ const i=document.getElementById('calc-input'), r=document.getElementById('calc-result'); if(!i||!r)return; let v=i.value; if(!v){r.innerText='';return;} try{ v=v.replace(/[\uff10-\uff19]/g,s=>String.fromCharCode(s.charCodeAt(0)-0xfee0)).replace(/[\uff0b]/g,'+'); const jpy=eval(v.replace(/[^0-9+\-*/().]/g,'')); if(isFinite(jpy)) r.innerText=`= ${jpy} JPY ≈ ${Math.round(jpy*appData.exchangeRate)} TWD`; }catch(e){r.innerText='...';} }
         function getWeather(){ 
             const l=document.getElementById('weather-loc'), t=document.getElementById('weather-temp'), d=document.getElementById('weather-desc'), i=document.getElementById('weather-icon');
             if(!navigator.geolocation){d.innerText="無定位權限";return;} l.innerText="定位中...";
