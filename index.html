@@ -212,30 +212,51 @@
                 }).catch(err => { console.error(err); status.innerText = '失敗'; });
         }
 
-        // --- Render Functions (修正版：防止日期錯誤導致當機) ---
+        // 【新功能】計算星期幾
+        function getWeekDay(dateStr) {
+            if(!dateStr || dateStr.length < 5) return '';
+            const days = ['日', '一', '二', '三', '四', '五', '六'];
+            try {
+                const d = new Date(dateStr);
+                if (!isNaN(d.getTime())) {
+                    return `(${days[d.getDay()]})`;
+                }
+            } catch(e) {}
+            return '';
+        }
+
+        // --- Render Functions ---
         function renderItinerary() {
             const container = document.getElementById('itinerary-list'); const navContainer = document.getElementById('day-navigator');
             if(!appData.itinerary || !appData.itinerary.length) { container.innerHTML = '<div class="text-center py-10 text-gray-500 bg-white/60 rounded-2xl">暫無行程資料</div>'; navContainer.innerHTML = ''; return; }
             navContainer.innerHTML = appData.itinerary.map((day, idx) => {
                 const isActive = idx === activeDayIndex;
-                // 強制轉字串
                 let rawDate = String(day.date || ""); 
                 let dateDisplay = rawDate;
+                let weekDay = getWeekDay(rawDate); // 取得星期
+
                 try {
                     if(rawDate.length > 10) { const d = new Date(rawDate); dateDisplay = !isNaN(d.getTime()) ? (d.getMonth()+1)+'/'+d.getDate() : rawDate.substring(0,5); }
                     else { const p = rawDate.split(/[-/]/); if(p.length>=3) dateDisplay = parseInt(p[1])+'/'+parseInt(p[2]); }
                 } catch(e) { dateDisplay = rawDate.substring(0,5); }
-                return `<div onclick="switchDay(${idx})" class="day-selector-item ${isActive?'active':'inactive'} flex-shrink-0 w-16 h-16 rounded-xl flex flex-col items-center justify-center cursor-pointer shadow-sm mx-1"><span class="text-[10px] font-bold opacity-70 mb-0.5">${day.day.replace('D','Day ')}</span><span class="text-lg font-bold leading-none">${dateDisplay}</span></div>`;
+                
+                // 顯示日期 + 星期 (小字)
+                return `<div onclick="switchDay(${idx})" class="day-selector-item ${isActive?'active':'inactive'} flex-shrink-0 w-16 h-16 rounded-xl flex flex-col items-center justify-center cursor-pointer shadow-sm mx-1">
+                    <span class="text-[10px] font-bold opacity-70 mb-0.5">${day.day.replace('D','Day ')}</span>
+                    <span class="text-base font-bold leading-none">${dateDisplay}</span>
+                    <span class="text-[10px] opacity-70 mt-0.5">${weekDay}</span>
+                </div>`;
             }).join('');
             
             const currentDay = appData.itinerary[activeDayIndex]; if (!currentDay) return;
             
-            // 強制轉字串
             let rawFullDate = String(currentDay.date || "");
             let fullDate = rawFullDate;
+            let bigWeekDay = getWeekDay(rawFullDate); // 大標題的星期
+
             try { if(rawFullDate.length>10) { const d = new Date(rawFullDate); if(!isNaN(d.getTime())) fullDate = d.getFullYear()+'/'+(d.getMonth()+1)+'/'+d.getDate(); } } catch(e){}
             
-            const dayHeader = `<div class="bg-white/95 backdrop-blur-md p-5 rounded-3xl shadow-sm border border-white/60 mb-6 animate-[fadeIn_0.3s_ease-in-out]"><div class="flex items-center justify-between"><div><h3 class="text-2xl font-bold text-gray-800">${currentDay.title}</h3><div class="text-sm text-gray-500 mt-1 flex items-center"><i class="far fa-calendar-alt mr-2 text-muji-accent"></i> ${fullDate}</div></div><div class="bg-gray-100 text-gray-500 px-3 py-1.5 rounded-full flex items-center justify-center font-bold shadow-inner text-sm whitespace-nowrap">${currentDay.day.replace('D','Day ')}</div></div></div>`;
+            const dayHeader = `<div class="bg-white/95 backdrop-blur-md p-5 rounded-3xl shadow-sm border border-white/60 mb-6 animate-[fadeIn_0.3s_ease-in-out]"><div class="flex items-center justify-between"><div><h3 class="text-2xl font-bold text-gray-800">${currentDay.title}</h3><div class="text-sm text-gray-500 mt-1 flex items-center"><i class="far fa-calendar-alt mr-2 text-muji-accent"></i> ${fullDate} <span class="ml-2 font-bold text-blue-500">${bigWeekDay}</span></div></div><div class="bg-gray-100 text-gray-500 px-3 py-1.5 rounded-full flex items-center justify-center font-bold shadow-inner text-sm whitespace-nowrap">${currentDay.day.replace('D','Day ')}</div></div></div>`;
             
             const eventsHtml = currentDay.events.map((evt, idx) => {
                 let timeline = 'bg-gray-300', icon = '<i class="fas fa-circle text-[8px]"></i>', type = 'normal', grad = '', bgIcon = '', mainIcon = '';
