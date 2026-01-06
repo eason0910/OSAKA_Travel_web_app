@@ -17,12 +17,9 @@
         .pb-safe { padding-bottom: env(safe-area-inset-bottom); }
         .fixed-bg-icon { pointer-events: none; z-index: 0; }
         select, input, textarea { transition: border-color 0.2s; }
-        
         .day-selector-item { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
         .day-selector-item.active { background-color: #0288D1; color: white; transform: scale(1.05); box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2); border: none; }
         .day-selector-item.inactive { background-color: rgba(255, 255, 255, 0.85); color: #546E7A; border: 1px solid rgba(255, 255, 255, 0.5); backdrop-filter: blur(4px); }
-        
-        /* 登入遮罩 */
         #login-modal { position: fixed; inset: 0; z-index: 100; background: rgba(179, 229, 252, 0.95); backdrop-filter: blur(5px); display: flex; align-items: center; justify-content: center; }
     </style>
     <script>
@@ -202,14 +199,11 @@
                     if(data.info) appData.info = data.info;
                     if(data.journal) appData.journal = data.journal;
                     
-                    // 【修正】匯率格式化：限制小數點後3位
                     if(data.rate) {
-                        const fixedRate = parseFloat(data.rate).toFixed(3); // 強制轉為3位小數的字串 (例如 "0.201")
-                        appData.exchangeRate = parseFloat(fixedRate); // 存回數字
-                        
+                        const fixedRate = parseFloat(data.rate).toFixed(3);
+                        appData.exchangeRate = parseFloat(fixedRate);
                         const rateEl = document.getElementById('exchange-rate');
-                        if(rateEl) rateEl.value = fixedRate; // 更新介面顯示
-                        
+                        if(rateEl) rateEl.value = fixedRate;
                         updateRate();
                     }
 
@@ -218,23 +212,31 @@
                 }).catch(err => { console.error(err); status.innerText = '失敗'; });
         }
 
-        // --- Render Functions ---
+        // --- Render Functions (修正版：防止日期錯誤導致當機) ---
         function renderItinerary() {
             const container = document.getElementById('itinerary-list'); const navContainer = document.getElementById('day-navigator');
             if(!appData.itinerary || !appData.itinerary.length) { container.innerHTML = '<div class="text-center py-10 text-gray-500 bg-white/60 rounded-2xl">暫無行程資料</div>'; navContainer.innerHTML = ''; return; }
             navContainer.innerHTML = appData.itinerary.map((day, idx) => {
                 const isActive = idx === activeDayIndex;
-                let dateDisplay = day.date;
+                // 強制轉字串
+                let rawDate = String(day.date || ""); 
+                let dateDisplay = rawDate;
                 try {
-                    if(day.date.length > 10) { const d = new Date(day.date); dateDisplay = !isNaN(d) ? (d.getMonth()+1)+'/'+d.getDate() : day.date.substring(0,5); }
-                    else { const p = day.date.split(/[-/]/); if(p.length>=3) dateDisplay = parseInt(p[1])+'/'+parseInt(p[2]); }
-                } catch(e) { dateDisplay = day.date.substring(0,5); }
+                    if(rawDate.length > 10) { const d = new Date(rawDate); dateDisplay = !isNaN(d.getTime()) ? (d.getMonth()+1)+'/'+d.getDate() : rawDate.substring(0,5); }
+                    else { const p = rawDate.split(/[-/]/); if(p.length>=3) dateDisplay = parseInt(p[1])+'/'+parseInt(p[2]); }
+                } catch(e) { dateDisplay = rawDate.substring(0,5); }
                 return `<div onclick="switchDay(${idx})" class="day-selector-item ${isActive?'active':'inactive'} flex-shrink-0 w-16 h-16 rounded-xl flex flex-col items-center justify-center cursor-pointer shadow-sm mx-1"><span class="text-[10px] font-bold opacity-70 mb-0.5">${day.day.replace('D','Day ')}</span><span class="text-lg font-bold leading-none">${dateDisplay}</span></div>`;
             }).join('');
+            
             const currentDay = appData.itinerary[activeDayIndex]; if (!currentDay) return;
-            let fullDate = currentDay.date;
-            try { if(fullDate.length>10) { const d = new Date(fullDate); if(!isNaN(d)) fullDate = d.getFullYear()+'/'+(d.getMonth()+1)+'/'+d.getDate(); } } catch(e){}
+            
+            // 強制轉字串
+            let rawFullDate = String(currentDay.date || "");
+            let fullDate = rawFullDate;
+            try { if(rawFullDate.length>10) { const d = new Date(rawFullDate); if(!isNaN(d.getTime())) fullDate = d.getFullYear()+'/'+(d.getMonth()+1)+'/'+d.getDate(); } } catch(e){}
+            
             const dayHeader = `<div class="bg-white/95 backdrop-blur-md p-5 rounded-3xl shadow-sm border border-white/60 mb-6 animate-[fadeIn_0.3s_ease-in-out]"><div class="flex items-center justify-between"><div><h3 class="text-2xl font-bold text-gray-800">${currentDay.title}</h3><div class="text-sm text-gray-500 mt-1 flex items-center"><i class="far fa-calendar-alt mr-2 text-muji-accent"></i> ${fullDate}</div></div><div class="bg-gray-100 text-gray-500 px-3 py-1.5 rounded-full flex items-center justify-center font-bold shadow-inner text-sm whitespace-nowrap">${currentDay.day.replace('D','Day ')}</div></div></div>`;
+            
             const eventsHtml = currentDay.events.map((evt, idx) => {
                 let timeline = 'bg-gray-300', icon = '<i class="fas fa-circle text-[8px]"></i>', type = 'normal', grad = '', bgIcon = '', mainIcon = '';
                 if (evt.type === 'flight') { type = 'flight'; timeline = 'bg-blue-500 ring-4 ring-blue-100'; icon = '<i class="fas fa-plane text-xs text-white"></i>'; }
@@ -257,6 +259,7 @@
         }
         function switchDay(i) { activeDayIndex=i; renderItinerary(); document.getElementById('day-navigator').children[i]?.scrollIntoView({behavior:'smooth', inline:'center'}); }
 
+        // --- Actions (修改：加上 userId) ---
         function addExpense() {
             const item = document.getElementById('expense-item').value, amount = document.getElementById('expense-amount').value, category = document.getElementById('expense-category').value, payment = document.getElementById('expense-payment').value, currency = document.getElementById('expense-currency').value;
             const btn = document.getElementById('btn-submit-expense');
@@ -326,7 +329,13 @@
             c.innerHTML = data.map(j => {
                 const imgHtml = j.photo ? `<img src="${j.photo}" class="w-full h-48 object-cover rounded-xl mt-3 shadow-sm border border-gray-100">` : '';
                 let dayLabel = j.date;
-                const itinDay = appData.itinerary.find(d => { if(d.date.length > 5) return d.date.includes(j.date) || new Date(d.date).toLocaleDateString().includes(j.date); return d.date === j.date; });
+                // 強制轉字串避免比對時出錯
+                const itinDay = appData.itinerary.find(d => { 
+                    const dDate = String(d.date || "");
+                    const jDate = String(j.date || "");
+                    if(dDate.length > 5) return dDate.includes(jDate) || new Date(dDate).toLocaleDateString().includes(jDate); 
+                    return dDate === jDate; 
+                });
                 if(itinDay) dayLabel = `${itinDay.day.replace('D','Day ')} - ${j.date}`;
                 return `<div class="bg-white/95 backdrop-blur-md p-5 rounded-3xl shadow-sm border border-white/60 relative group"><div class="flex justify-between items-start mb-2"><div class="flex items-center gap-2"><span class="bg-muji-accent text-white text-xs px-2 py-1 rounded-md font-bold">${dayLabel}</span></div><button onclick="deleteJournal('${j.id}')" class="text-gray-300 hover:text-red-400 p-1"><i class="fas fa-trash-alt"></i></button></div><div class="text-gray-700 leading-relaxed whitespace-pre-line text-sm">${j.text}</div>${imgHtml}</div>`;
             }).join('');
@@ -335,7 +344,8 @@
             const select = document.getElementById('journal-date'); if(!select || !appData.itinerary.length) return;
             select.innerHTML = '<option value="">選擇日期...</option>';
             appData.itinerary.forEach(day => {
-                let val = day.date; try { if(day.date.length > 10) { const d = new Date(day.date); if(!isNaN(d)) val = (d.getMonth()+1) + '/' + d.getDate(); } } catch(e){}
+                let val = String(day.date || ""); // 強制轉字串
+                try { if(val.length > 10) { const d = new Date(val); if(!isNaN(d.getTime())) val = (d.getMonth()+1) + '/' + d.getDate(); } } catch(e){}
                 const option = document.createElement('option'); option.value = val; option.text = `${day.day.replace('D','Day ')} (${val}) - ${day.title}`; select.appendChild(option);
             });
         }
